@@ -189,5 +189,31 @@ app.get('/getDiseaseSolutions', async (req, res) => {
   }
 });
 
+// New route to get diseases
+app.get('/getDiseases', async (req, res) => {
+  try {
+    const [results] = await db.query('SELECT DISTINCT disease FROM disease_products');
+   // console.log(results);
+    res.json(results);
+  } catch (err) {
+    res.status(500).send('Error fetching diseases');
+  }
+});
+
+app.get('/getMedicine', async (req, res) => {
+  try {
+    const [rows] = await db.execute(`
+      SELECT id, product AS name, disease, purchase_link AS link
+      FROM disease_products
+    `);
+    //console.log(rows);
+    res.json(rows);
+  } catch (error) {
+    console.error("Error fetching medicines:", error);
+    res.status(500).send("Error fetching medicine data");
+  }
+});
+
+
 const PORT = process.env.PORT || 5001;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

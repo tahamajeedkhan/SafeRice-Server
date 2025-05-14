@@ -20,6 +20,7 @@ const dbConfig = {
 
 let db;
 
+// Initialize database connection
 async function connectDatabase() {
   try {
     db = await mysql.createConnection(dbConfig);
@@ -30,7 +31,7 @@ async function connectDatabase() {
   }
 }
 
-// Initialize database connection
+// Connect to the database on server startup
 connectDatabase();
 
 const authenticateToken = (req, res, next) => {
@@ -76,6 +77,7 @@ app.post('/signup', async (req, res) => {
   }
 });
 
+// Login Route
 app.post('/login', async (req, res) => {
   const { username, password } = req.body;
 
@@ -93,6 +95,7 @@ app.post('/login', async (req, res) => {
     const loginTime = new Date();
 
     await db.query('INSERT INTO user_log (user_id, login_time) VALUES (?, ?)', [user.id, loginTime]);
+    //console.log(user);
 
     res.status(200).json({ success: true, token, use_id: user.id });
   } catch (err) {
@@ -100,6 +103,7 @@ app.post('/login', async (req, res) => {
   }
 });
 
+// Logout Route
 app.post('/logout', authenticateToken, async (req, res) => {
   const userId = req.user.id;
   const logoutTime = new Date();
@@ -125,6 +129,7 @@ app.post('/logout', authenticateToken, async (req, res) => {
   }
 });
 
+// Get Username Route
 app.get('/getUsername', authenticateToken, async (req, res) => {
   try {
     const [results] = await db.query('SELECT username FROM users WHERE id = ?', [req.user.id]);
@@ -146,6 +151,7 @@ app.get('/getProfile', authenticateToken, async (req, res) => {
   }
 });
 
+// Update Profile Route
 app.put('/updateProfile', authenticateToken, async (req, res) => {
   try {
     const userId = req.user.id;
@@ -179,41 +185,51 @@ app.put('/updateProfile', authenticateToken, async (req, res) => {
   }
 });
 
-// Define a route to get disease solutions
+// Get Disease Solutions Route
 app.get('/getDiseaseSolutions', async (req, res) => {
   try {
     const [results] = await db.query('SELECT * FROM disease_solutions');
     res.json(results);
+    console.log(await db.query('SELECT * FROM disease_solutions'))
   } catch (err) {
     res.status(500).send('Error fetching disease solutions');
   }
 });
 
-// New route to get diseases
+// Get Diseases Route
 app.get('/getDiseases', async (req, res) => {
   try {
     const [results] = await db.query('SELECT DISTINCT disease FROM disease_products');
-   // console.log(results);
     res.json(results);
   } catch (err) {
     res.status(500).send('Error fetching diseases');
   }
 });
 
+// Get Medicine Route
 app.get('/getMedicine', async (req, res) => {
   try {
     const [rows] = await db.execute(`
       SELECT id, product AS name, disease, purchase_link AS link
       FROM disease_products
     `);
-    //console.log(rows);
     res.json(rows);
   } catch (error) {
-    console.error("Error fetching medicines:", error);
     res.status(500).send("Error fetching medicine data");
   }
 });
 
+// Get Cuisine Route
+app.get('/getCuisine', async (req, res) => {
+  try {
+    const [rows] = await db.execute(`SELECT * FROM rice_dishes`);
+    console.log(await db.execute(`SELECT * FROM rice_dishes`));
+    res.json(rows);
+  } catch (error) {
+    res.status(500).send("Error fetching cuisine data");
+  }
+});
 
+// Start the server
 const PORT = process.env.PORT || 5001;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
